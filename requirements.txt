@@ -1,5 +1,8 @@
+-e .
 langgraph
 langchain[google-genai]
 langchain-core
 dotenv
 ipython
+instagrapi
+pillow
