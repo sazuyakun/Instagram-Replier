@@ -1,5 +1,5 @@
 # Auto Insta-HBD Replier
-Just like you (probably...), I am also a college student with numerous friends and colleagues. Every year, I used to undergo this ritual of replying everyone with a "Thank You❤️✨". You realise your life is monotonous enough to add such a ritual on one small (but special) day of your life.
+Just like you (probably...), I am a college student with numerous friends and colleagues. Every year, I used to undergo this ritual of replying everyone with a "Thank You❤️✨". Well you come up with such ideas when you realise your life is monotonous enough to add such a ritual to this tiny but special day of your life.
 
 ## What is it?
 > An AI Agent that automates the process of fetching, analyzing and crafting the best reply to the sweet birthday wishes of your closest friends and family members!!!
@@ -25,7 +25,6 @@ The system uses a **LangGraph Agent** that orchestrates the entire workflow thro
 2. **Birthday Detection** ([`check_birthday_message`](src/agent.py))
    - Uses Google Gemini LLM to analyze message content
    - Identifies birthday-related keywords: "birthday", "happy birthday", "bday", "celebrate", "wishes", "many more"
-   - AI-powered classification determines if message is birthday-related
 
 3. **Smart Routing**
    - **Birthday Message** → Generate personalized reply
