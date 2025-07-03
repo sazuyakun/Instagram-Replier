@@ -4,27 +4,6 @@ from src.instagram import InstagramClient
 from src.llm import llm
 from utils.utils import load_processed, save_processed
 
-MESSAGES_ = [
-                    {
-                        "user_id": '32023722652',
-                        "thread_id": 340282366841710301244258891121977124898,
-                        "text": "Happy birthday baby! you mean the world to me.",
-                        "created_at": "2025-07-03 14:30:25",
-                    },
-                    {
-                        "user_id": '56880791156',
-                        "thread_id": 340282366841710301244258891121977124898,
-                        "text": "Happy birthday! oiiiii",
-                        "created_at": "2025-07-03 14:30:25",
-                    },
-                    {
-                        "user_id": '56880791156',
-                        "thread_id": 340282366841710301244258891121977124898,
-                        "text": "How are you, let's play basketball",
-                        "created_at": "2025-07-03 09:15:42",
-                    }
-                ]
-
 class AgentState(TypedDict):
     """State for the LangGraph agent"""
     messages: List[Dict[str, Any]]
