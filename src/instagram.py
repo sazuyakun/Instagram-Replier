@@ -32,7 +32,7 @@ class InstagramClient:
                 for msg in thread.messages:
                     if msg.user_id != self.cl.user_id_from_username(ACCOUNT_USERNAME):
                         created_at = msg.timestamp
-                        if is_message_from_date(created_at, TARGET_DATE) and msg.text != None:
+                        if is_message_from_date(created_at, TARGET_DATE) and msg.item_type == 'text' and msg.text is not None and msg.text.strip() != "":
                             target_msgs.append({
                                 "user_id": msg.user_id,
                                 "thread_id": thread.id,
@@ -47,5 +47,5 @@ class InstagramClient:
         """
         self.cl.direct_send(text, user_ids=[user_id])
 
-myClient = InstagramClient()
-print(myClient.fetch_unread_msgs())
+# myClient = InstagramClient()
+# print(myClient.fetch_unread_msgs())
