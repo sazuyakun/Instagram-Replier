@@ -1,8 +1,10 @@
+import time
 from langgraph.graph import StateGraph, START, END
 from typing import TypedDict, List, Dict, Any
 from src.instagram import InstagramClient
 from src.llm import llm
 from utils.utils import load_processed, save_processed
+from langchain_core.runnables import RunnableConfig
 
 class AgentState(TypedDict):
     """State for the LangGraph agent"""
@@ -21,6 +23,7 @@ class Agent:
         self.llm = llm
         self.processed = load_processed()
         self.graph = self._build_graph()
+        self.config = RunnableConfig(recursion_limit=1000)
 
     def _build_graph(self):
         """Build the LangGraph workflow"""
@@ -71,8 +74,8 @@ class Agent:
         if not state.get("messages"):
             # First time fetching messages
             try:
-                # messages = self.instagram_client.fetch_unread_msgs()
-                messages = MESSAGES_
+                messages = self.instagram_client.fetch_unread_msgs()
+
 
                 unprocessed_messages = [
                     msg for msg in messages
@@ -94,24 +97,43 @@ class Agent:
 
     def has_messages_to_process(self, state: AgentState) -> str:
         """Check if there are more messages to process"""
-        if (state.get("current_message") and
-            state["processed_count"] < len(state.get("messages", []))):
+        messages = state.get("messages", [])
+        processed_count = state.get("processed_count", 0)
+
+        # Check if we have processed all messages
+        if processed_count >= len(messages):
+            return "end"
+
+        # Check if we have a current message to process
+        if state.get("current_message"):
             return "process"
+
         return "end"
 
     def check_birthday_message(self, state: AgentState) -> AgentState:
         """Check if the current message is a birthday message"""
         message_text = state["current_message"]["text"]
 
+        # First try keyword detection (no API call)
         birthday_keywords = ["birthday", "happy birthday", "bday", "celebrate", "wishes", "many more"]
+        is_birthday_keyword = any(keyword.lower() in message_text.lower() for keyword in birthday_keywords)
 
-        is_birthday = any(keyword.lower() in message_text.lower() for keyword in birthday_keywords)
+        if is_birthday_keyword:
+            # If keywords found, assume it's a birthday message
+            state["is_birthday_message"] = True
+        else:
+            # Only use LLM for uncertain cases
+            try:
+                time.sleep(5)  # Rate limiting
+                prompt = f"Is this message a birthday wish or birthday-related? Respond with only 'yes' or 'no': '{message_text}'"
+                llm_response = self.llm.invoke(prompt)
+                is_birthday = llm_response.content.lower().strip() == "yes"
+                state["is_birthday_message"] = is_birthday
+            except Exception as e:
+                print(f"❌ Error checking birthday message: {str(e)}")
+                # Default to False if API fails
+                state["is_birthday_message"] = False
 
-        prompt = f"Is this message a birthday wish or birthday-related? Respond with only 'yes' or 'no': '{message_text}'"
-        llm_response = self.llm.invoke(prompt)
-        is_birthday = llm_response.content.lower().strip() == "yes"
-
-        state["is_birthday_message"] = is_birthday
         return state
 
     def is_birthday_condition(self, state: AgentState) -> str:
@@ -134,8 +156,14 @@ class Agent:
         Reply:
         """
 
-        reply = self.llm.invoke(prompt)
-        state["reply_text"] = reply.content.strip()
+        try:
+            time.sleep(5)
+            reply = self.llm.invoke(prompt)
+            state["reply_text"] = reply.content.strip()
+        except Exception as e:
+            print(f"Error generating reply: {e}")
+            state["reply_text"] = "Thank you for your birthday wishes!"
+
         return state
 
     def send_reply(self, state: AgentState) -> AgentState:
@@ -169,7 +197,7 @@ class Agent:
         }
 
         print("🚀 Starting Instagram Birthday Reply Agent...")
-        result = self.graph.invoke(initial_state)
+        result = self.graph.invoke(initial_state, config=self.config)
         print("✅ Agent workflow completed!")
         return result
 

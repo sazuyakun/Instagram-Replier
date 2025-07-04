@@ -19,7 +19,7 @@ class InstagramClient:
         self.cl = Client()
         self.cl.login(ACCOUNT_USERNAME, ACCOUNT_PASSWORD)
 
-    def fetch_unread_msgs(self, target_date=TARGET_DATE, inbox_amount=1):
+    def fetch_unread_msgs(self, target_date=TARGET_DATE, inbox_amount=100):
         """
         Fetch unread messages on the target date.
         """
@@ -32,13 +32,14 @@ class InstagramClient:
                 for msg in thread.messages:
                     if msg.user_id != self.cl.user_id_from_username(ACCOUNT_USERNAME):
                         created_at = msg.timestamp
-                        if is_message_from_date(created_at, TARGET_DATE) and msg.item_type == 'text' and msg.text is not None and msg.text.strip() != "":
-                            target_msgs.append({
-                                "user_id": msg.user_id,
-                                "thread_id": thread.id,
-                                "text": msg.text,
-                                "created_at": created_at.strftime("%Y-%m-%d %H:%M:%S"),
-                            })
+                        if msg.item_type == 'xma_reel_share' or msg.item_type == 'text':
+                            if is_message_from_date(created_at, TARGET_DATE) and msg.text is not None and msg.text.strip() != "":
+                                target_msgs.append({
+                                    "user_id": msg.user_id,
+                                    "thread_id": thread.id,
+                                    "text": msg.text,
+                                    "created_at": created_at.strftime("%Y-%m-%d %H:%M:%S"),
+                                })
         return target_msgs
 
     def reply_to_dm(self, user_id, text):
